@@ -1,4 +1,6 @@
-
+import sys
+import time
+import psutil
 GAP_PENALTY = 30
 
 mismatch = {"A": {"A": 0, "C": 110, "G": 48, "T": 94},
@@ -41,6 +43,7 @@ def find_alignment(X:str, Y:str):
 
     i = m
     j = n
+    print(f"opt cost is {OPT[m][n]}")
     while i > 0 or j > 0:
         if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + mismatch[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
             i-=1
@@ -54,20 +57,37 @@ def find_alignment(X:str, Y:str):
         else:
             print("NOT SUPPOSED TO BE HERE")
 
-    x_sol = "_A_CA_CACT__G__A_C_TAC_TGACTG_GTGA__C_TACTGACTGGACTGACTACTGACTGGTGACTACT_GACTG_G"
-    y_sol = "TATTATTA_TACGCTATTATACGCGAC_GCG_GACGCGTA_T_AC__G_CT_ATTA_T_AC__GCGAC_GC_GGAC_GCG"
-    print("First String:", x_final)
-    print("Second String:", y_final)
-    print(len(x_final) == len(x_sol))
-    print(len(y_final) == len(y_sol))
-    print(x_final == x_sol)
-    print(y_final == y_sol)
+    return OPT[m][n], x_final, y_final
 
+
+def process_memory():
+    process = psutil.Process() 
+    memory_info = process.memory_info()
+    memory_consumed = int(memory_info.rss/1024) 
+    return memory_consumed
+
+def time_wrapper(X,Y): 
+    start_time = time.time() 
+    find_alignment(X,Y)
+    end_time = time.time()
+    time_taken = (end_time - start_time)*1000 
+    return time_taken
+
+def run_full_algorithm_get_efficiency(X, Y):
+    cost, x_ret, y_ret = find_alignment(X, Y)
+    mem_used = process_memory()
+    time = time_wrapper(X,Y)
+    print(cost)
+    print(x_ret)
+    print(y_ret)
+    print(mem_used)
+    print(time)
 
 def main():
-    X = "ACACACTGACTACTGACTGGTGACTACTGACTGGACTGACTACTGACTGGTGACTACTGACTGG"
-    Y = "TATTATTATACGCTATTATACGCGACGCGGACGCGTATACGCTATTATACGCGACGCGGACGCG"
-    find_alignment(X, Y)
+    X = 'AAAAAAATTTTTTAAAAGGGGAAAAAAAAAAAAAAAAAATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGTCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGAA'
+    Y = 'AAAAAAATTTTTTGGGGAAAAAAAAAAAAAAAAAAAAAATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGA'
+
+    run_full_algorithm_get_efficiency(X, Y)
 
 if __name__ == "__main__":
     main()
