@@ -62,6 +62,25 @@ def assert_input(generated_base_string, actual_base_string):
     print("Actual base string: ", actual_base_string)
     assert generated_base_string == actual_base_string, "Generated base string does not match actual base string"
 
+def test_all_datapoints(_file_dir: str):
+    # check each datapoint test case
+    file_dir = _file_dir
+    file_names = os.listdir(file_dir)
+    # number of files in directory
+    print("Number of files: ", len(file_names))
+    file_ctr = 0
+
+    for file_name in file_names:
+        file_ctr += 1
+        print("Parsing file: ", file_ctr, " of ", len(file_names))
+        print("File: ", file_dir + file_name)
+        print("Running test case for file: ", file_name)
+        output_string_1, output_string_2 = generate_input_string(file_dir + "/" + file_name)
+        print ("\nOutput String 1: ", output_string_1)
+        print ("\nOutput String 2: ", output_string_2)   
+        print ("Completed test case for file " + str(file_ctr) + " of", len(file_names))
+        print("\n")
+
 def generate_input_string(file_name: str, actual_base_string_1: str = "", actual_base_string_2: str = "", verbose: bool = False):
     # parse input file
     input_word_1, index_list_1, input_word_2, index_list_2 = parse_input_file(file_name)
@@ -99,3 +118,9 @@ if __name__ == "__main__":
     output_string_1, output_string_2 = generate_input_string("input.txt")
     print ("Output String 1: ", output_string_1)
     print ("Output String 2: ", output_string_2)
+
+    # test all datapoints
+    file_dir = "datapoints/"
+    test_all_datapoints(file_dir)
+
+    
