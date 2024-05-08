@@ -9,22 +9,36 @@ def print_lines(lines: list[str]):
 def parse_input_file(file_name: str) -> tuple[str, str]:
     
     # store input word, list of indices, and file lines
-    input_word = ""
     lines = ""
-    list_of_indices = []
-    
+    input_word_1 = ""
+    input_word_2 = ""
+    index_list_1 = []
+    index_list_2 = []
 
+    found_second_word = False
+    
     # check if file exists, read all lines
     with open(file_name, 'r') as file:
         lines = file.readlines()
-    
-    # store input word and list of indices
-    input_word = lines[0].strip()
+
+    # slice lines into 4 parts: first line with a word, next j lines with integers (not sure how many), next line with a word, final k lines with integers (not sure how many)
+    input_word_1 = lines[0].strip()
     for i in range(1, len(lines)):
-        list_of_indices.append(int(lines[i].strip()))
+        if not found_second_word:
+            if lines[i].strip().isdigit():
+                index_list_1.append(int(lines[i].strip()))
+            else:
+                input_word_2 = lines[i].strip()
+                found_second_word = True
+        elif found_second_word:
+            if lines[i].strip().isdigit():
+                index_list_2.append(int(lines[i].strip()))
+            else:
+                print("Error: unexpected input")
+                sys.exit(1)
     
     # return input word and list of indices
-    return input_word, list_of_indices        
+    return input_word_1, index_list_1, input_word_2, index_list_2
 
 def process_input(input_word: str, list_of_indices: list[int], verbose: False) -> None:
     # modified_string starts as input_word 
@@ -48,27 +62,33 @@ def assert_input(generated_base_string, actual_base_string):
     print("Actual base string: ", actual_base_string)
     assert generated_base_string == actual_base_string, "Generated base string does not match actual base string"
 
-def generate_input_string(file_name: str, actual_base_string: str = "", verbose: bool = False):
+def generate_input_string(file_name: str, actual_base_string_1: str = "", actual_base_string_2: str = "", verbose: bool = False):
     # parse input file
-    input_word, list_of_indices = parse_input_file(file_name)
+    input_word_1, index_list_1, input_word_2, index_list_2 = parse_input_file(file_name)
 
     if verbose:
-        print("Input Word: ", input_word)
-        print("List of Indices: ", list_of_indices)
+        print("Input Word 1: ", input_word_1)
+        print("List of Indices: ", index_list_1)
+        print("Input Word 2: ", input_word_2)
+        print("List of Indices: ", index_list_2)
 
     # process input
-    output_string = process_input(input_word, list_of_indices, verbose)
+    output_string_1 = process_input(input_word_1, index_list_1, verbose)
+    output_string_2 = process_input(input_word_2, index_list_2, verbose)
 
     if verbose:
-        print ("Output String: ", output_string)
+        print ("Output String 1: ", output_string_1)
+        print ("Output String 2: ", output_string_2)
 
-    if actual_base_string == "":
-        return output_string
+    if actual_base_string_1 == "":
+        return output_string_1, output_string_2
 
     # assert input
-    assert_input(output_string, actual_base_string)
+    assert_input(output_string_1, actual_base_string_1)
+    assert_input(output_string_2, actual_base_string_2)
 
-    return output_string
+    return output_string_1, output_string_2
 
-validation_string = "ACACTGACTACTGACTGGTGACTACTGACTGG"
-generate_input_string("input.txt", validation_string, verbose=True)
+validation_string =     "ACACTGACTACTGACTGGTGACTACTGACTGG"
+validation_string_2 =   "TATTATACGCTATTATACGCGACGCGGACGCG"
+generate_input_string("input.txt", validation_string, validation_string_2, verbose=True)
