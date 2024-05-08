@@ -48,15 +48,27 @@ def assert_input(generated_base_string, actual_base_string):
     print("Actual base string: ", actual_base_string)
     assert generated_base_string == actual_base_string, "Generated base string does not match actual base string"
 
+def generate_input_string(file_name: str, actual_base_string: str = "", verbose: bool = False):
+    # parse input file
+    input_word, list_of_indices = parse_input_file(file_name)
 
-input_word, list_of_indices = parse_input_file("input.txt")
+    if verbose:
+        print("Input Word: ", input_word)
+        print("List of Indices: ", list_of_indices)
 
-print("Input Word: ", input_word)
-print("List of Indices: ", list_of_indices)
+    # process input
+    output_string = process_input(input_word, list_of_indices, verbose)
 
-output_string = process_input(input_word, list_of_indices, True)
+    if verbose:
+        print ("Output String: ", output_string)
 
-print ("Output String: ", output_string)
+    if actual_base_string == "":
+        return output_string
 
-actual_base_string = "TATTATACGCTATTATACGCGACGCGGACGCG"
-assert_input(output_string, actual_base_string)
+    # assert input
+    assert_input(output_string, actual_base_string)
+
+    return output_string
+
+validation_string = "ACACTGACTACTGACTGGTGACTACTGACTGG"
+generate_input_string("input.txt", validation_string, verbose=True)
