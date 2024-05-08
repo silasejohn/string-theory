@@ -2,10 +2,6 @@
 import os
 import sys
 
-def print_lines(lines: list[str]):
-    for line in lines:
-        print(line) 
-
 def parse_input_file(file_name: str) -> tuple[str, str]:
     
     # store input word, list of indices, and file lines
