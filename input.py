@@ -89,6 +89,13 @@ def generate_input_string(file_name: str, actual_base_string_1: str = "", actual
 
     return output_string_1, output_string_2
 
-validation_string =     "ACACTGACTACTGACTGGTGACTACTGACTGG"
-validation_string_2 =   "TATTATACGCTATTATACGCGACGCGGACGCG"
-generate_input_string("input.txt", validation_string, validation_string_2, verbose=True)
+if __name__ == "__main__":
+    # test input against validation strings
+    validation_string =     "ACACTGACTACTGACTGGTGACTACTGACTGG"
+    validation_string_2 =   "TATTATACGCTATTATACGCGACGCGGACGCG"
+    generate_input_string("input.txt", validation_string, validation_string_2, verbose=True)
+
+    # simply generate input strings
+    output_string_1, output_string_2 = generate_input_string("input.txt")
+    print ("Output String 1: ", output_string_1)
+    print ("Output String 2: ", output_string_2)
