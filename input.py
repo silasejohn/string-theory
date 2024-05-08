@@ -26,16 +26,27 @@ def parse_input_file(file_name: str) -> tuple[str, str]:
     # return input word and list of indices
     return input_word, list_of_indices        
 
-def process_input(input_word: str, list_of_indices: list[int]) -> None:
-    # base_string starts as input_word 
-    base_string = input_word
+def process_input(input_word: str, list_of_indices: list[int], verbose: False) -> None:
+    # modified_string starts as input_word 
+    modified_string = input_word
 
-    # (insert) input_word into base_string after index i 
+    if verbose:
+        print("First Base String: ", modified_string)
+
+    # (insert) input_word into modified_string after index i 
     for i in list_of_indices:
-        base_string = base_string[:i] + input_word + base_string[i:]
+        new_string = modified_string[:i+1] + modified_string + modified_string[i+1:] # i+1 is not inclusive on first slice
+        if verbose:
+            print("Insertion after index", str(i) + ":", new_string)
+        modified_string = new_string
 
-    # return base_string
-    return base_string
+    # return modified_string
+    return modified_string
+
+def assert_input(generated_base_string, actual_base_string):
+    print("Generated base string: ", generated_base_string)
+    print("Actual base string: ", actual_base_string)
+    assert generated_base_string == actual_base_string, "Generated base string does not match actual base string"
 
 
 input_word, list_of_indices = parse_input_file("input.txt")
@@ -43,6 +54,9 @@ input_word, list_of_indices = parse_input_file("input.txt")
 print("Input Word: ", input_word)
 print("List of Indices: ", list_of_indices)
 
-output_string = process_input(input_word, list_of_indices)
+output_string = process_input(input_word, list_of_indices, True)
 
 print ("Output String: ", output_string)
+
+actual_base_string = "TATTATACGCTATTATACGCGACGCGGACGCG"
+assert_input(output_string, actual_base_string)
