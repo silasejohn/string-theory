@@ -1,8 +1,10 @@
 import os
 import sys
 import time
+import tracemalloc
 import psutil
 import matplotlib.pyplot as plt
+import basic_3 as basic
 
 GAP_PENALTY =30
 
@@ -130,80 +132,81 @@ def find_alignment(X:str, Y:str) -> tuple[int, str, str, float, float]:
     return alignment
 #find 
 def recurse(X:str, Y:str) -> str:
-    if len(X) == 0:
-        return len(Y) * GAP_PENALTY, len(Y)*"_", Y
-    if len(Y) == 0:
-        return len(X) * GAP_PENALTY, X, len(X)*"_"
-    if X == Y:
-        return 0, X, Y
-    if len(X) == 1 or len(Y) == 1:
-        OPT = find_optimal_matrix(Y,X)
-        i = len(X)
-        j = len(Y)
+    m = len(X)
+    n = len(Y)
+    if (m <= 2 or n <= 2):
+        _, x, y = basic.find_alignment(X,Y)
+        return x, y
+    Y_mid = n//2
+    Y_left = Y[:Y_mid]
+    Y_right = Y[Y_mid:]
+    minCost = 10**14 #current max int
+    splitPoint = -1
+    left = find_optimal_matrix(X, Y_left)
+    right = find_optimal_matrix(X, Y_right)
+    for i in range(len(right)):
+        currCost = left[i] + right[i]
+        if (currCost <= minCost):
+            minCost = currCost
+            splitPoint = i
+    X_left = Y[:splitPoint]
+    X_right = Y[splitPoint:]
+    (X_left_final, Y_left_final) = recurse(X_left, Y_left)
+    (X_right_final, Y_right_final) = recurse(X_right, Y_right)
+    return (X_left_final + X_right_final, Y_left_final + Y_right_final)
 
-        x_final = X
-        y_final = Y
-        # print(f"base case x: {X} y: {Y} opt: {OPT}")
-        # print(f"{i} {j} {X[i-1]} {Y[j-1]}")
-        while i > 0 or j > 0:
-            if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + A[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
-                i-=1
-                j-=1
-            elif j > 0 and OPT[i][j] == OPT[i][j-1] + GAP_PENALTY:  # gap condition, keep Y[j] gap X[i]
-                x_final = x_final[:i] + "_" + x_final[i:]
-                j-=1
-            elif i > 0 and OPT[i][j] == OPT[i-1][j] + GAP_PENALTY: # gap condition, keep X[i] gap Y[j]
-                y_final = y_final[:j] + "_" + y_final[j:]
-                i-=1
-
-        return OPT[len(X)][len(Y)], x_final, y_final
-    #split x in half and from left and right
-    Xl = X[0:len(X)//2]
-    Xr = X[len(X)//2:]
-    #process x1 first
-    #create opt matrix
-    optl = find_optimal_matrix(Xl, Y)
-    optr = find_optimal_matrix(Xr[::-1], Y[::-1])
-    min_index = -1
-    min_cost = 9999999999999999999
-    for i in range(len(optl)):
-        cur_val = optl[i][-1] + optr[len(Y) - i][-1]
-        if cur_val < min_cost:
-            min_cost = cur_val
-            min_index = i
-    Yl = Y[:min_index]
-    Yr = Y[min_index:]  
+# def recurse(X:str, Y:str) -> str:
+#     if len(X) <=2 or len(Y) <= 2:
+#         return basic.find_alignment(X,Y)
+#     #split x in half and from left and right
+#     Xl = X[0:len(X)//2]
+#     Xr = X[len(X)//2:]
+#     #process x1 first
+#     #create opt matrix
+#     optl = find_optimal_matrix(Y, Xl)
+#     optr = find_optimal_matrix(Y, Xr)
+#     min_index = -1
+#     min_cost = 9999999999999999999
+#     for i in range(len(optl)):
+#         cur_val = optl[i] + optr[i]
+#         if cur_val < min_cost:
+#             min_cost = cur_val
+#             min_index = i
+#     Yl = Y[:min_index]
+#     Yr = Y[min_index:]  
     
-
-    # print(optl)
-    # print(optr)
-    # print(f"x: {X} y: {Y} index: {min_index} xl: {Xl} xr: {Xr} yl: {Yl} yr: {Yr}")
+#     lcost, xl_align, yl_align = recurse(Xl, Yl)
+#     rcost, xr_align, yr_align = recurse(Xr, Yr)
     
-    lcost, xl_align, yl_align = recurse(Xl, Yl)
-    rcost, xr_align, yr_align = right_sequence = recurse(Xr, Yr)
-    
-    #print(f"total cost: {lcost + rcost} xalgin: {xl_align + xr_align} ralign: {yl_align + yr_align}")
-    return lcost + rcost, xl_align + xr_align, yl_align + yr_align
-
+#     #print(f"total cost: {lcost + rcost} xalgin: {xl_align + xr_align} ralign: {yl_align + yr_align}")
+#     return lcost + rcost, xl_align + xr_align, yl_align + yr_align
 
 
     #generate the optimal 
 def find_optimal_matrix(Xl:str, Y:str) -> list[list[int]]:
-    optl = [[0 for i in range(len(Xl)+1)] for j in range(len(Y)+1)]
-    #basecases
-    for i in range(len(Y)+1):
-        optl[i][0] = i*GAP_PENALTY
-    for i in range(len(Xl)+1):
-        optl[0][i] = i*GAP_PENALTY
-
-    for i in range(1, len(Y)+1):
-        for j in range(1, len(Xl)+1):
-            #print(f"{i} {j} {Xl[j-1]} {Y[i-1]} {A[Y[i-1]][Xl[j-1]]}")
-            optl[i][j] = min(optl[i-1][j-1] + A[Y[i-1]][Xl[j-1]],
-                            optl[i][j-1] + GAP_PENALTY,
-                            optl[i-1][j] + GAP_PENALTY)
-
-    return optl
+    m = len(Xl)
+    n = len(Y)
+    
+    # Initialize the DP table for alignment costs
+    dp = [[0] * (m + 1) for _ in range(2)]
+    
+    # Fill the DP table
+    for i in range(1, m + 1):
+        dp[0][i] = i * GAP_PENALTY
+    for i in range(1, n + 1):
+        dp[1][0] = i * GAP_PENALTY
+        for j in range(1, m + 1):
+            cost_match = A[Xl[j - 1]][Y[i - 1]]
+            dp[1][j] = min(
+                dp[0][j - 1] + cost_match,
+                dp[0][j] + GAP_PENALTY,
+                dp[1][j - 1] + GAP_PENALTY
+            )
+        for j in range(0, m):
+            dp[0][j] = dp[1][j]
+    
+    
+    return dp[-1]
 
 def process_memory():
     process = psutil.Process() 
@@ -218,16 +221,28 @@ def time_wrapper(X,Y):
     time_taken = (end_time - start_time)*1000 
     return time_taken
 
+def get_cost(X,Y):
+    assert len(X) == len(Y)
+    cost = 0
+    for i in range(len(X)):
+        if X[i] == "_" or Y[i] == "_":
+            cost += 30
+        else:
+            cost += A[X[i]][Y[i]]
+
+    return cost
+
+
+
 def run_full_algorithm_get_efficiency(X, Y):
-    cost, x_ret, y_ret = find_alignment(X, Y)
-    mem_used = process_memory()
-    time = time_wrapper(X,Y)
-    return cost, x_ret, y_ret, time, mem_used
-    # print(cost)
-    # print(x_ret)
-    # print(y_ret)
-    # print(mem_used)
-    # print(time)
+    start_time = time.time() 
+    x_ret, y_ret = find_alignment(X,Y)
+    cost = get_cost(x_ret, y_ret)
+    end_time = time.time()
+    time_taken = (end_time - start_time)*1000 
+    memoryTaken = process_memory()
+
+    return cost, x_ret, y_ret, time_taken, memoryTaken
 
 
 def main():
@@ -252,11 +267,7 @@ def main():
     #     # print(f"Y: {y_ret}")
     #     print(f"Time: {time}")
     #     print(f"Memory: {mem_used}")
-    #     if idx == 4:
-    #         print("ASSERTINGGGGGG: ")
-    #         assert_input(cost, 63996)
-    #         assert_input(len(y_ret), len("_T_T_TATTTTTTATTTTTATTTTATTTTTTATTTTTATTATTTATTTTATTATACGCGACGC___GATTATAC___GCGACGC_GATACGCGACGCGATTATACGCG_ACG_CGTTTA__TTATACG_CG_ACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACG_CG_ACGCGTT_TAT__T_TTAT_TATACG__CGACG__CGATTATACG_CG_ACG__CGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTATACG_CG_ACG___CGTAT_TAT_TTATTTTATTATACG_CG_ACG__CG_ATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTT_ATTATTTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTAT_TTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTT_ATTATTTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACG_CG"))
-    #         print("ASSERTINGGGGGG: ")
+        
     
     ### DATAPOINT TEST CASES ###
     datapoints_dir_name = "datapoints/"
@@ -266,46 +277,49 @@ def main():
     
     # if a file is in the format of "in#.txt" where # is a number, put that file in index (# - 1)
     sample_file_names = sorted(sample_file_names, key=lambda x: int(x[2:-4]))
-    print(sample_file_names)
-    iter_ctr = 0
+    # print(sample_file_names)
+    iter_ctr = 13
     
-    for i in range(len(sample_file_names)):
-        iter_ctr += 1
-        word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[i])
-        cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-        problem_size = len(x_ret) + len(y_ret)
-        cpu_time_array.append(time)
-        mem_usage_array.append(mem_used)
-        problem_size_array.append(problem_size)
-        # create output file per iteration run
-        output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
-        output_file.write(f"Cost: {cost}\n")
-        output_file.write(f"X: {x_ret}\n")
-        output_file.write(f"Y: {y_ret}\n")
-        output_file.write(f"Time: {time}\n")
-        output_file.write(f"Memory: {mem_used}\n")
-        output_file.close()
+    #for i in range(len(sample_file_names)):
+    word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[iter_ctr])
+    #assert word_1 == "AAGAGAAAAGAGAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATT"
+    cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
+    problem_size = len(x_ret) + len(y_ret)
+    cpu_time_array.append(time)
+    mem_usage_array.append(mem_used)
+    problem_size_array.append(problem_size)
+    print(f"file index {iter_ctr}")
+    print(f"{cost} {time} {mem_used}")
+
+    #     # create output file per iteration run
+    #     output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
+    #     output_file.write(f"Cost: {cost}\n")
+    #     output_file.write(f"X: {x_ret}\n")
+    #     output_file.write(f"Y: {y_ret}\n")
+    #     output_file.write(f"Time: {time}\n")
+    #     output_file.write(f"Memory: {mem_used}\n")
+    #     output_file.close()
         
-    print("cpu_time_array: ", cpu_time_array)
-    print("mem_usage_array: ", mem_usage_array)
-    print("problem_size_array: ", problem_size_array)
-    print("length of cpu_time_array: ", len(cpu_time_array))
-    print("length of mem_usage_array: ", len(mem_usage_array))
-    print("length of problem_size_array: ", len(problem_size_array))
+    # print("cpu_time_array: ", cpu_time_array)
+    # print("mem_usage_array: ", mem_usage_array)
+    # print("problem_size_array: ", problem_size_array)
+    # print("length of cpu_time_array: ", len(cpu_time_array))
+    # print("length of mem_usage_array: ", len(mem_usage_array))
+    # print("length of problem_size_array: ", len(problem_size_array))
 
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, cpu_time_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("CPU Time (ms)")
-    plt.title("[EFFICIENT] CPU Time vs Problem Size")
-    plt.show()
+    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    # plt.plot(problem_size_array, cpu_time_array)
+    # plt.xlabel("Problem Size")
+    # plt.ylabel("CPU Time (ms)")
+    # plt.title("[EFFICIENT] CPU Time vs Problem Size")
+    # plt.show()
 
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, mem_usage_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("Memory (KB)")
-    plt.title("[EFFICIENT] Memory vs Problem Size")
-    plt.show()
+    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    # plt.plot(problem_size_array, mem_usage_array)
+    # plt.xlabel("Problem Size")
+    # plt.ylabel("Memory (KB)")
+    # plt.title("[EFFICIENT] Memory vs Problem Size")
+    # plt.show()
 
 
     

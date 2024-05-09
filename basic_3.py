@@ -3,6 +3,7 @@ import time
 import psutil
 import os
 import matplotlib.pyplot as plt
+import tracemalloc
 
 GAP_PENALTY = 30
 
@@ -134,7 +135,6 @@ def basic_algorithm(X:str, Y:str, m, n) -> list[list[int]]:
     for i in range(1, m):
         for j in range(1, n):
             OPT[i][j] = min(OPT[i-1][j-1] + mismatch[X[i-1]][Y[j-1]], OPT[i-1][j] + GAP_PENALTY, OPT[i][j-1] + GAP_PENALTY)
-    print(OPT[m-1][n-1])
     return OPT
 
 # top-down pass
@@ -152,7 +152,6 @@ def find_alignment(X:str, Y:str):
 
     i = m
     j = n
-    print(f"opt cost is {OPT[m][n]}")
     while i > 0 or j > 0:
         if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + mismatch[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
             i-=1
@@ -183,10 +182,13 @@ def time_wrapper(X,Y):
     return time_taken
 
 def run_full_algorithm_get_efficiency(X, Y):
-    cost, x_ret, y_ret = find_alignment(X, Y)
-    mem_used = process_memory()
-    time = time_wrapper(X,Y)
-    return cost, x_ret, y_ret, time, mem_used
+    start_time = time.time() 
+    cost, x_ret, y_ret = find_alignment(X,Y)
+    end_time = time.time()
+    time_taken = (end_time - start_time)*1000 
+    memoryTaken = process_memory()
+
+    return cost, x_ret, y_ret, time_taken, memoryTaken
     # print(cost)
     # print(x_ret)
     # print(y_ret)
@@ -224,45 +226,33 @@ def main():
     
     # if a file is in the format of "in#.txt" where # is a number, put that file in index (# - 1)
     sample_file_names = sorted(sample_file_names, key=lambda x: int(x[2:-4]))
-    print(sample_file_names)
-    iter_ctr = 0
+    #print(sample_file_names)
+    iter_ctr = 13
     
-    for i in range(len(sample_file_names)):
-        iter_ctr += 1
-        word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[i])
-        cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-        problem_size = len(x_ret) + len(y_ret)
-        cpu_time_array.append(time)
-        mem_usage_array.append(mem_used)
-        problem_size_array.append(problem_size)
-        # create output file per iteration run
-        output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
-        output_file.write(f"Cost: {cost}\n")
-        output_file.write(f"X: {x_ret}\n")
-        output_file.write(f"Y: {y_ret}\n")
-        output_file.write(f"Time: {time}\n")
-        output_file.write(f"Memory: {mem_used}\n")
-        output_file.close()
+# for i in range(len(sample_file_names)):
+#for i in range(len(sample_file_names)):
+      #for i in range(len(sample_file_names)):
+    word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[iter_ctr])
+    cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
+    problem_size = len(x_ret) + len(y_ret)
+    cpu_time_array.append(time)
+    mem_usage_array.append(mem_used)
+    problem_size_array.append(problem_size)
+    print(f"file index {iter_ctr}")
+    print(f"{cost} {time} {mem_used}")
 
-    print("cpu_time_array: ", cpu_time_array)
-    print("mem_usage_array: ", mem_usage_array)
-    print("problem_size_array: ", problem_size_array)
-    print("length of cpu_time_array: ", len(cpu_time_array))
-    print("length of mem_usage_array: ", len(mem_usage_array))
-    print("length of problem_size_array: ", len(problem_size_array))
+    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    # plt.scatter(problem_size_array, cpu_time_array)
+    # plt.xlabel("Problem Size")
+    # plt.ylabel("CPU Time (ms)")
+    # plt.title("[BASIC] CPU Time vs Problem Size")
+    # plt.show()
 
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, cpu_time_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("CPU Time (ms)")
-    plt.title("[BASIC] CPU Time vs Problem Size")
-    plt.show()
-
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, mem_usage_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("Memory (KB)")
-    plt.title("[BASIC] Memory vs Problem Size")
-    plt.show()
+    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    # plt.scatter(problem_size_array, mem_usage_array)
+    # plt.xlabel("Problem Size")
+    # plt.ylabel("Memory (KB)")
+    # plt.title("[BASIC] Memory vs Problem Size")
+    # plt.show()
 if __name__ == "__main__":
     main()
