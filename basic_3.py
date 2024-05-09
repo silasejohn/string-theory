@@ -3,6 +3,8 @@ import time
 import psutil
 import os
 import matplotlib.pyplot as plt
+import numpy as np
+import argparse
 
 GAP_PENALTY = 30
 
@@ -187,82 +189,23 @@ def run_full_algorithm_get_efficiency(X, Y):
     mem_used = process_memory()
     time = time_wrapper(X,Y)
     return cost, x_ret, y_ret, time, mem_used
-    # print(cost)
-    # print(x_ret)
-    # print(y_ret)
-    # print(time)
-    # print(mem_used)
 
-def main():
-    cpu_time_array = []
-    mem_usage_array = []
-    problem_size_array = [] 
-    
-    ### SAMPLE TEST CASES ###
-    # sample_dir_name = "sample_test_cases/"
-    # sample_file_names = ["input1.txt", "input2.txt", "input3.txt", "input4.txt", "input5.txt"] # os.listdir(file_dir)
-    # for idx in range(len(sample_file_names)): 
-    #     word_1, word_2 = generate_input_string(sample_dir_name + sample_file_names[idx])
-    #     print("First Word: ", word_1)
-    #     print("Second Word: ", word_2)
-    #     cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-    #     problem_size = len(x_ret) + len(y_ret)
-    #     cpu_time_array.append(time)
-    #     mem_usage_array.append(mem_used)
-    #     problem_size_array.append(problem_size)
-    #     print(f"Cost: {cost}")
-    #     print(f"X: {x_ret}")
-    #     print(f"Y: {y_ret}")
-    #     print(f"Time: {time}")
-    #     print(f"Memory: {mem_used}")
+def main(input_file, output_file):
+    word_1, word_2 = generate_input_string(str(input_file))
+    cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
 
-    ### DATAPOINT TEST CASES ###
-    datapoints_dir_name = "datapoints/"
-    sample_file_names = os.listdir(datapoints_dir_name)
-    # only keep file names that start with "in"
-    sample_file_names = [file_name for file_name in sample_file_names if file_name.startswith("in")]
-    
-    # if a file is in the format of "in#.txt" where # is a number, put that file in index (# - 1)
-    sample_file_names = sorted(sample_file_names, key=lambda x: int(x[2:-4]))
-    print(sample_file_names)
-    iter_ctr = 0
-    
-    for i in range(len(sample_file_names)):
-        iter_ctr += 1
-        word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[i])
-        cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-        problem_size = len(x_ret) + len(y_ret)
-        cpu_time_array.append(time)
-        mem_usage_array.append(mem_used)
-        problem_size_array.append(problem_size)
-        # create output file per iteration run
-        output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
-        output_file.write(f"Cost: {cost}\n")
-        output_file.write(f"X: {x_ret}\n")
-        output_file.write(f"Y: {y_ret}\n")
-        output_file.write(f"Time: {time}\n")
-        output_file.write(f"Memory: {mem_used}\n")
-        output_file.close()
+    # create output file per iteration run
+    output_file = open(str(output_file), "w")
+    output_file.write(str(cost) + "\n")
+    output_file.write(str(x_ret) + "\n")
+    output_file.write(str(y_ret) + "\n")
+    output_file.write(str(time) + "\n")
+    output_file.write(str(mem_used) + "\n")
+    output_file.close()
 
-    print("cpu_time_array: ", cpu_time_array)
-    print("mem_usage_array: ", mem_usage_array)
-    print("problem_size_array: ", problem_size_array)
-    print("length of cpu_time_array: ", len(cpu_time_array))
-    print("length of mem_usage_array: ", len(mem_usage_array))
-    print("length of problem_size_array: ", len(problem_size_array))
-
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, cpu_time_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("CPU Time (ms)")
-    plt.title("[BASIC] CPU Time vs Problem Size")
-    plt.show()
-
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, mem_usage_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("Memory (KB)")
-    plt.title("[BASIC] Memory vs Problem Size")
-    plt.show()
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process input and output files")
+    parser.add_argument("input_file", help="Path to the input file")
+    parser.add_argument("output_file", help="Path to the output file")
+    args = parser.parse_args()
+    main(args.input_file, args.output_file)

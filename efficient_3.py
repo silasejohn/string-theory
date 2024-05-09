@@ -4,6 +4,8 @@ import time
 import psutil
 import matplotlib.pyplot as plt
 import basic_3 as basic 
+import argparse
+
 GAP_PENALTY =30
 
 A = {"A" : {"A":0, "C":110, "G":48, "T":94},
@@ -190,7 +192,7 @@ def find_optimal_matrix(Y:str, Xl:str) -> list[list[int]]:
             # get the cost of a match
             cost_match = A[Xl[idx_2 - 1]][Y[idx_1 - 1]] 
 
-            # fill the cell
+            # get the minimum cost of the three possible moves
             mem_dp[1][idx_2] = min(
                 mem_dp[0][idx_2 - 1] + cost_match,
                 mem_dp[0][idx_2] + GAP_PENALTY,
@@ -229,89 +231,24 @@ def run_full_algorithm_get_efficiency(X, Y):
     # print(time)
 
 
-def main():
-    cpu_time_array = []
-    mem_usage_array = []
-    problem_size_array = [] 
-
-    # ### SAMPLE TEST CASES ###
-    # sample_dir_name = "sample_test_cases/"
-    # sample_file_names = ["input1.txt", "input2.txt", "input3.txt", "input4.txt", "input5.txt"] # os.listdir(file_dir)
-    # for idx in range(len(sample_file_names)): 
-    #     word_1, word_2 = generate_input_string(sample_dir_name + sample_file_names[idx])
-    #     # print("First Word: ", word_1)
-    #     # print("Second Word: ", word_2)
-    #     cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-    #     problem_size = len(x_ret) + len(y_ret)
-    #     cpu_time_array.append(time)
-    #     mem_usage_array.append(mem_used)
-    #     problem_size_array.append(problem_size)
-    #     print(f"\nCost: {cost}")
-    #     # print(f"X: {x_ret}")
-    #     # print(f"Y: {y_ret}")
-    #     print(f"Time: {time}")
-    #     print(f"Memory: {mem_used}")
-    #     if idx == 4:
-    #         print("ASSERTINGGGGGG: ")
-    #         assert_input(cost, 63996)
-    #         assert_input(len(y_ret), len("_T_T_TATTTTTTATTTTTATTTTATTTTTTATTTTTATTATTTATTTTATTATACGCGACGC___GATTATAC___GCGACGC_GATACGCGACGCGATTATACGCG_ACG_CGTTTA__TTATACG_CG_ACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACG_CG_ACGCGTT_TAT__T_TTAT_TATACG__CGACG__CGATTATACG_CG_ACG__CGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTATACG_CG_ACG___CGTAT_TAT_TTATTTTATTATACG_CG_ACG__CG_ATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTT_ATTATTTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTAT_TTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTT_ATTATTTATTTTATTATACGCGACGCGATTATACGCG_ACG_CGATACG_CG_ACG_CG_AT_TATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGATTTATTTTATTATACGCGACGCGATTA__TACG_CG_ACG_CGATACG_CG_ACGCGATTATACGCGACG_CGTTTA__TTATACG_CG_ACGCGATTATACG_CG_ACG_CGATACG_CG_ACGCGATTA__TACG_CG_ACGCGTT_TAT__T_TTA__TT_ATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTATTATTTATTTTATTATACG__CGACG__CGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACGCGTTTATTATACG_CG_ACGCGATTATACG_CG_ACGCGATACG__CGACG__CGATTATACG_CG_ACG_CG"))
-    #         print("ASSERTINGGGGGG: ")
+def main(input_file, output_file):
     
-    ### DATAPOINT TEST CASES ###
-    datapoints_dir_name = "datapoints/"
-    sample_file_names = os.listdir(datapoints_dir_name)
-    # only keep file names that start with "in"
-    sample_file_names = [file_name for file_name in sample_file_names if file_name.startswith("in")]
+    word_1, word_2 = generate_input_string(str(input_file))
+    cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
     
-    # if a file is in the format of "in#.txt" where # is a number, put that file in index (# - 1)
-    sample_file_names = sorted(sample_file_names, key=lambda x: int(x[2:-4]))
-    print(sample_file_names)
-    iter_ctr = 0
-    
-    for i in range(len(sample_file_names)):
-        iter_ctr += 1
-        word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[i])
-        cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-        problem_size = len(x_ret) + len(y_ret)
-        cpu_time_array.append(time)
-        mem_usage_array.append(mem_used)
-        problem_size_array.append(problem_size)
-        # create output file per iteration run
-        print(f"file index {i}")
-        print(f"{cost} {time} {mem_used}")
-        output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
-        output_file.write(f"Cost: {cost}\n")
-        output_file.write(f"X: {x_ret}\n")
-        output_file.write(f"Y: {y_ret}\n")
-        output_file.write(f"Time: {time}\n")
-        output_file.write(f"Memory: {mem_used}\n")
-        output_file.close()
-        
-    print("cpu_time_array: ", cpu_time_array)
-    print("mem_usage_array: ", mem_usage_array)
-    print("problem_size_array: ", problem_size_array)
-    print("length of cpu_time_array: ", len(cpu_time_array))
-    print("length of mem_usage_array: ", len(mem_usage_array))
-    print("length of problem_size_array: ", len(problem_size_array))
-
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, cpu_time_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("CPU Time (ms)")
-    plt.title("[EFFICIENT] CPU Time vs Problem Size")
-    plt.show()
-
-    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    plt.scatter(problem_size_array, mem_usage_array)
-    plt.xlabel("Problem Size")
-    plt.ylabel("Memory (KB)")
-    plt.title("[EFFICIENT] Memory vs Problem Size")
-    plt.show()
-
-
-    
-
+    # create output file per iteration run
+    output_file = open(str(output_file), "w")
+    output_file.write(f"{cost}\n")
+    output_file.write(f"{x_ret}\n")
+    output_file.write(f"{y_ret}\n")
+    output_file.write(f"{time}\n")
+    output_file.write(f"{mem_used}\n")
+    output_file.close()
     
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process input and output files")
+    parser.add_argument("input_file", help="Path to the input file")
+    parser.add_argument("output_file", help="Path to the output file")
+    args = parser.parse_args()
+    main(args.input_file, args.output_file)
 
