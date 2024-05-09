@@ -3,7 +3,7 @@ import sys
 import time
 import psutil
 import matplotlib.pyplot as plt
-
+import basic_3 as basic 
 GAP_PENALTY =30
 
 A = {"A" : {"A":0, "C":110, "G":48, "T":94},
@@ -130,33 +130,10 @@ def find_alignment(X:str, Y:str) -> tuple[int, str, str, float, float]:
     return alignment
 #find 
 def recurse(X:str, Y:str) -> str:
-    if len(X) == 0:
-        return len(Y) * GAP_PENALTY, len(Y)*"_", Y
-    if len(Y) == 0:
-        return len(X) * GAP_PENALTY, X, len(X)*"_"
-    if X == Y:
-        return 0, X, Y
-    if len(X) == 1 or len(Y) == 1:
-        OPT = find_optimal_matrix(Y,X)
-        i = len(X)
-        j = len(Y)
+    if (len(X) <= 2 or len(Y) <= 2):
+        _, x, y = basic.find_alignment(X,Y)
+        return _, x, y
 
-        x_final = X
-        y_final = Y
-        # print(f"base case x: {X} y: {Y} opt: {OPT}")
-        # print(f"{i} {j} {X[i-1]} {Y[j-1]}")
-        while i > 0 or j > 0:
-            if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + A[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
-                i-=1
-                j-=1
-            elif j > 0 and OPT[i][j] == OPT[i][j-1] + GAP_PENALTY:  # gap condition, keep Y[j] gap X[i]
-                x_final = x_final[:i] + "_" + x_final[i:]
-                j-=1
-            elif i > 0 and OPT[i][j] == OPT[i-1][j] + GAP_PENALTY: # gap condition, keep X[i] gap Y[j]
-                y_final = y_final[:j] + "_" + y_final[j:]
-                i-=1
-
-        return OPT[len(X)][len(Y)], x_final, y_final
     #split x in half and from left and right
     Xl = X[0:len(X)//2]
     Xr = X[len(X)//2:]
@@ -167,7 +144,7 @@ def recurse(X:str, Y:str) -> str:
     min_index = -1
     min_cost = 9999999999999999999
     for i in range(len(optl)):
-        cur_val = optl[i][-1] + optr[len(Y) - i][-1]
+        cur_val = optl[i] + optr[len(Y) - i]
         if cur_val < min_cost:
             min_cost = cur_val
             min_index = i
@@ -188,22 +165,28 @@ def recurse(X:str, Y:str) -> str:
 
 
     #generate the optimal 
-def find_optimal_matrix(Xl:str, Y:str) -> list[list[int]]:
-    optl = [[0 for i in range(len(Xl)+1)] for j in range(len(Y)+1)]
-    #basecases
-    for i in range(len(Y)+1):
-        optl[i][0] = i*GAP_PENALTY
-    for i in range(len(Xl)+1):
-        optl[0][i] = i*GAP_PENALTY
-
-    for i in range(1, len(Y)+1):
-        for j in range(1, len(Xl)+1):
-            #print(f"{i} {j} {Xl[j-1]} {Y[i-1]} {A[Y[i-1]][Xl[j-1]]}")
-            optl[i][j] = min(optl[i-1][j-1] + A[Y[i-1]][Xl[j-1]],
-                            optl[i][j-1] + GAP_PENALTY,
-                            optl[i-1][j] + GAP_PENALTY)
-
-    return optl
+def find_optimal_matrix(Y:str, Xl:str) -> list[list[int]]:
+    m = len(Xl)
+    n = len(Y)
+    
+    # Initialize the DP table for alignment costs
+    dp = [[0] * (m + 1) for _ in range(2)]
+    
+    # Fill the DP table
+    for i in range(1, m + 1):
+        dp[0][i] = i * GAP_PENALTY
+    for i in range(1, n + 1):
+        dp[1][0] = i * GAP_PENALTY
+        for j in range(1, m + 1):
+            cost_match = A[Xl[j - 1]][Y[i - 1]]
+            dp[1][j] = min(
+                dp[0][j - 1] + cost_match,
+                dp[0][j] + GAP_PENALTY,
+                dp[1][j - 1] + GAP_PENALTY
+            )
+        for j in range(0, m):
+            dp[0][j] = dp[1][j]
+    return dp[-1]
 
 def process_memory():
     process = psutil.Process() 
@@ -278,6 +261,8 @@ def main():
         mem_usage_array.append(mem_used)
         problem_size_array.append(problem_size)
         # create output file per iteration run
+        print(f"file index {i}")
+        print(f"{cost} {time} {mem_used}")
         output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
         output_file.write(f"Cost: {cost}\n")
         output_file.write(f"X: {x_ret}\n")

@@ -134,7 +134,7 @@ def basic_algorithm(X:str, Y:str, m, n) -> list[list[int]]:
     for i in range(1, m):
         for j in range(1, n):
             OPT[i][j] = min(OPT[i-1][j-1] + mismatch[X[i-1]][Y[j-1]], OPT[i-1][j] + GAP_PENALTY, OPT[i][j-1] + GAP_PENALTY)
-    print(OPT[m-1][n-1])
+    #print(OPT[m-1][n-1])
     return OPT
 
 # top-down pass
@@ -152,7 +152,7 @@ def find_alignment(X:str, Y:str):
 
     i = m
     j = n
-    print(f"opt cost is {OPT[m][n]}")
+    #print(f"opt cost is {OPT[m][n]}")
     while i > 0 or j > 0:
         if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + mismatch[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
             i-=1
