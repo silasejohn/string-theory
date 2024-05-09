@@ -278,18 +278,19 @@ def main():
     # if a file is in the format of "in#.txt" where # is a number, put that file in index (# - 1)
     sample_file_names = sorted(sample_file_names, key=lambda x: int(x[2:-4]))
     # print(sample_file_names)
-    iter_ctr = 13
+    # iter_ctr = 0
     
-    #for i in range(len(sample_file_names)):
-    word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[iter_ctr])
+    for i in range(len(sample_file_names)):
+        # iter_ctr += 1
+        word_1, word_2 = generate_input_string(datapoints_dir_name + sample_file_names[i])
     #assert word_1 == "AAGAGAAAAGAGAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGATTAGAGATTAAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATTAGAGAAAAGAGAAAGAGATTAGAGATTAAGAGAAAAGAGAAAGAGATTAGAGATT"
-    cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
-    problem_size = len(x_ret) + len(y_ret)
-    cpu_time_array.append(time)
-    mem_usage_array.append(mem_used)
-    problem_size_array.append(problem_size)
-    print(f"file index {iter_ctr}")
-    print(f"{cost} {time} {mem_used}")
+        cost, x_ret, y_ret, time, mem_used = run_full_algorithm_get_efficiency(word_1, word_2)
+        problem_size = len(x_ret) + len(y_ret)
+        cpu_time_array.append(time)
+        mem_usage_array.append(mem_used)
+        problem_size_array.append(problem_size)
+        print(f"file index {i}")
+        print(f"{cost} {time} {mem_used}")
 
     #     # create output file per iteration run
     #     output_file = open(datapoints_dir_name + f"output{iter_ctr}.txt", "w")
@@ -300,26 +301,26 @@ def main():
     #     output_file.write(f"Memory: {mem_used}\n")
     #     output_file.close()
         
-    # print("cpu_time_array: ", cpu_time_array)
-    # print("mem_usage_array: ", mem_usage_array)
-    # print("problem_size_array: ", problem_size_array)
-    # print("length of cpu_time_array: ", len(cpu_time_array))
-    # print("length of mem_usage_array: ", len(mem_usage_array))
-    # print("length of problem_size_array: ", len(problem_size_array))
+    print("cpu_time_array: ", cpu_time_array)
+    print("mem_usage_array: ", mem_usage_array)
+    print("problem_size_array: ", problem_size_array)
+    print("length of cpu_time_array: ", len(cpu_time_array))
+    print("length of mem_usage_array: ", len(mem_usage_array))
+    print("length of problem_size_array: ", len(problem_size_array))
 
-    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    # plt.plot(problem_size_array, cpu_time_array)
-    # plt.xlabel("Problem Size")
-    # plt.ylabel("CPU Time (ms)")
-    # plt.title("[EFFICIENT] CPU Time vs Problem Size")
-    # plt.show()
+    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    plt.plot(problem_size_array, cpu_time_array)
+    plt.xlabel("Problem Size")
+    plt.ylabel("CPU Time (ms)")
+    plt.title("[EFFICIENT] CPU Time vs Problem Size")
+    plt.show()
 
-    # # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
-    # plt.plot(problem_size_array, mem_usage_array)
-    # plt.xlabel("Problem Size")
-    # plt.ylabel("Memory (KB)")
-    # plt.title("[EFFICIENT] Memory vs Problem Size")
-    # plt.show()
+    # plot a graph for cpu_time vs problem_size using cpu_time_array and problem_size_array
+    plt.plot(problem_size_array, mem_usage_array)
+    plt.xlabel("Problem Size")
+    plt.ylabel("Memory (KB)")
+    plt.title("[EFFICIENT] Memory vs Problem Size")
+    plt.show()
 
 
     
