@@ -166,27 +166,43 @@ def recurse(X:str, Y:str) -> str:
 
     #generate the optimal 
 def find_optimal_matrix(Y:str, Xl:str) -> list[list[int]]:
-    m = len(Xl)
-    n = len(Y)
+    # get the length of the strings
+    XL_len = len(Xl)
+    Y_len = len(Y)
     
-    # Initialize the DP table for alignment costs
-    dp = [[0] * (m + 1) for _ in range(2)]
+    # empty DP table
+    mem_dp = []
     
-    # Fill the DP table
-    for i in range(1, m + 1):
-        dp[0][i] = i * GAP_PENALTY
-    for i in range(1, n + 1):
-        dp[1][0] = i * GAP_PENALTY
-        for j in range(1, m + 1):
-            cost_match = A[Xl[j - 1]][Y[i - 1]]
-            dp[1][j] = min(
-                dp[0][j - 1] + cost_match,
-                dp[0][j] + GAP_PENALTY,
-                dp[1][j - 1] + GAP_PENALTY
+    # stucture of DP table
+    for _ in range(2):
+        mem_dp.append([0] * (XL_len + 1))
+    
+    # fill the first row
+    for idx_1 in range(1, XL_len + 1):
+        mem_dp[0][idx_1] = idx_1 * GAP_PENALTY
+    
+    # fill the rest of the table
+    for idx_1 in range(1, Y_len + 1):
+        mem_dp[1][0] = idx_1 * GAP_PENALTY
+
+        # fill the rest of the row
+        for idx_2 in range(1, XL_len + 1):
+            # get the cost of a match
+            cost_match = A[Xl[idx_2 - 1]][Y[idx_1 - 1]] 
+
+            # fill the cell
+            mem_dp[1][idx_2] = min(
+                mem_dp[0][idx_2 - 1] + cost_match,
+                mem_dp[0][idx_2] + GAP_PENALTY,
+                mem_dp[1][idx_2 - 1] + GAP_PENALTY
             )
-        for j in range(0, m):
-            dp[0][j] = dp[1][j]
-    return dp[-1]
+
+        # copy the second row to the first row
+        for idx_2 in range(0, XL_len):
+            mem_dp[0][idx_2] = mem_dp[1][idx_2]
+    
+    # return the DP table
+    return mem_dp[-1]
 
 def process_memory():
     process = psutil.Process() 
