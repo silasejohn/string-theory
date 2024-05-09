@@ -3,7 +3,6 @@ import sys
 import time
 import psutil
 import matplotlib.pyplot as plt
-import basic_3 as basic 
 import argparse
 
 GAP_PENALTY =30
@@ -125,6 +124,54 @@ def generate_input_string(file_name: str, actual_base_string_1: str = "", actual
 
 
 
+# parameters: X = 1st string, Y = 2nd string
+# bottom-up pass
+def basic_algorithm(X:str, Y:str, m, n) -> list[list[int]]:
+    OPT = [[0 for i in range(n)] for j in range(m)]
+
+    # initialize column 0 and row 0
+    for i in range(m):
+        OPT[i][0] = i*GAP_PENALTY
+    for i in range(n):
+        OPT[0][i] = i*GAP_PENALTY
+
+    for i in range(1, m):
+        for j in range(1, n):
+            OPT[i][j] = min(OPT[i-1][j-1] + A[X[i-1]][Y[j-1]], OPT[i-1][j] + GAP_PENALTY, OPT[i][j-1] + GAP_PENALTY)
+    #print(OPT[m-1][n-1])
+    return OPT
+
+# top-down pass
+def basic_find_alignment(X:str, Y:str):
+    m = len(X)
+    n = len(Y)
+
+    x_final = X
+    y_final = Y
+
+    OPT = [[0 for i in range(m+1)] for i in range(n+1)]
+    OPT = basic_algorithm(X, Y, m+1, n+1)
+
+    alignment = ""
+
+    i = m
+    j = n
+    #print(f"opt cost is {OPT[m][n]}")
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + A[X[i-1]][Y[j-1]]: # matched condition, keep X[i] and Y[j]
+            i-=1
+            j-=1
+        elif j > 0 and OPT[i][j] == OPT[i][j-1] + GAP_PENALTY:  # gap condition, keep Y[j] gap X[i]
+            x_final = x_final[:i] + "_" + x_final[i:]
+            j-=1
+        elif i > 0 and OPT[i][j] == OPT[i-1][j] + GAP_PENALTY: # gap condition, keep X[i] gap Y[j]
+            y_final = y_final[:j] + "_" + y_final[j:]
+            i-=1
+        else:
+            print("NOT SUPPOSED TO BE HERE")
+
+    return OPT[m][n], x_final, y_final
+
 
 def find_alignment(X:str, Y:str) -> tuple[int, str, str, float, float]:
     #take in string and call recursive hepler function
@@ -133,7 +180,7 @@ def find_alignment(X:str, Y:str) -> tuple[int, str, str, float, float]:
 #find 
 def recurse(X:str, Y:str) -> str:
     if (len(X) <= 2 or len(Y) <= 2):
-        _, x, y = basic.find_alignment(X,Y)
+        _, x, y = basic_find_alignment(X,Y)
         return _, x, y
 
     #split x in half and from left and right
@@ -169,42 +216,32 @@ def recurse(X:str, Y:str) -> str:
     #generate the optimal 
 def find_optimal_matrix(Y:str, Xl:str) -> list[list[int]]:
     # get the length of the strings
-    XL_len = len(Xl)
-    Y_len = len(Y)
+    m = len(Xl) + 1 
+    n = len(Y) + 1
+    dp = []
+    for i in range(2):
+        temp = []
+        for j in range(m):
+            temp.append(0)
+        dp.append(temp)
+            
     
-    # empty DP table
-    mem_dp = []
-    
-    # stucture of DP table
-    for _ in range(2):
-        mem_dp.append([0] * (XL_len + 1))
-    
-    # fill the first row
-    for idx_1 in range(1, XL_len + 1):
-        mem_dp[0][idx_1] = idx_1 * GAP_PENALTY
-    
-    # fill the rest of the table
-    for idx_1 in range(1, Y_len + 1):
-        mem_dp[1][0] = idx_1 * GAP_PENALTY
-
-        # fill the rest of the row
-        for idx_2 in range(1, XL_len + 1):
-            # get the cost of a match
-            cost_match = A[Xl[idx_2 - 1]][Y[idx_1 - 1]] 
-
-            # get the minimum cost of the three possible moves
-            mem_dp[1][idx_2] = min(
-                mem_dp[0][idx_2 - 1] + cost_match,
-                mem_dp[0][idx_2] + GAP_PENALTY,
-                mem_dp[1][idx_2 - 1] + GAP_PENALTY
+    # Fill the DP table
+    for i in range(1, m):
+        dp[0][i] = i * GAP_PENALTY
+    for i in range(1, n):
+        dp[1][0] = i * GAP_PENALTY
+        for j in range(1, m):
+            dp[1][j] = min(
+                dp[1][j - 1] + GAP_PENALTY,
+                dp[0][j - 1] + A[Xl[j - 1]][Y[i - 1]],
+                dp[0][j] + GAP_PENALTY
             )
-
-        # copy the second row to the first row
-        for idx_2 in range(0, XL_len):
-            mem_dp[0][idx_2] = mem_dp[1][idx_2]
+        for j in range(0, m):
+            dp[0][j] = dp[1][j]
     
-    # return the DP table
-    return mem_dp[-1]
+    
+    return dp[-1]
 
 def process_memory():
     process = psutil.Process() 
