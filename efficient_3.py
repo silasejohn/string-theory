@@ -215,32 +215,37 @@ def recurse(X:str, Y:str) -> str:
 
     #generate the optimal 
 def find_optimal_matrix(Y:str, Xl:str) -> list[list[int]]:
-    # get the length of the strings
-    m = len(Xl) + 1 
-    n = len(Y) + 1
-    dp = []
+    
+    # get the length of each input string
+    XL_len = len(Xl) + 1 
+    Y_len = len(Y) + 1
+
+    # create a 2D array to store the DP table
+    dp = [] 
+
     for i in range(2):
         temp = []
-        for j in range(m):
+        for j in range(XL_len):
             temp.append(0)
         dp.append(temp)
             
     
-    # Fill the DP table
-    for i in range(1, m):
+    # Fill in the DP table
+    for i in range(1, XL_len):
         dp[0][i] = i * GAP_PENALTY
-    for i in range(1, n):
+    for i in range(1, Y_len):
         dp[1][0] = i * GAP_PENALTY
-        for j in range(1, m):
+        for j in range(1, XL_len):
+            # get the minimum cost from the three possible options
             dp[1][j] = min(
                 dp[1][j - 1] + GAP_PENALTY,
                 dp[0][j - 1] + A[Xl[j - 1]][Y[i - 1]],
                 dp[0][j] + GAP_PENALTY
             )
-        for j in range(0, m):
+        for j in range(0, XL_len):
             dp[0][j] = dp[1][j]
     
-    
+    # return the DP table
     return dp[-1]
 
 def process_memory():
